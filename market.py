@@ -11,6 +11,35 @@ logger = logging.getLogger(__file__)
 
 
 def get_product_list(page, campaign_id, access_token):
+    """
+    Получает список товаров из Яндекс.Маркета по ID кампании.
+
+    Args:
+        page(str): Токен для постраничной навигации.
+            Пустая строка "" означает первую страницу.
+        campaign_id(str):  Индефикатор кампании в Яндекс.Маркете.
+        access_token(str): Токен для авторизации.
+
+    Returns:
+        dict: Словарь с результатами, в котором есть:
+            - offerMappingEntries (list): список товаров.
+            - paging (dict): данные дл яперехода на следующую страницу.
+    Raises:
+        requests.exceptions.HTTpError: Если API вернул ошибку (например, неверный токен).
+        requests.exceptions.ConnectionError: Если нет соеденения с интернетом.
+        requests.exceptions.Timeout: Если запрос превысил лимит времени.
+
+    Examples:
+        Корректное использование:
+            >>> result = get_product_list("", "123456", "ya29.a0AfH6SM...")
+            >>> isinstance(result, dict)
+            True
+
+        Некорректное использование:
+        >>> result = get_product_list("", "123456", "WRONG_TOKEN")
+        requests.exceptions.HTTPError: 401 Client Error
+    
+    """
     endpoint_url = "https://api.partner.market.yandex.ru/"
     headers = {
         "Content-Type": "application/json",
@@ -30,6 +59,25 @@ def get_product_list(page, campaign_id, access_token):
 
 
 def update_stocks(stocks, campaign_id, access_token):
+    """
+    Обновляет остатки товаров в Яндекс.Маркете.
+
+    Args:
+        stocks(list[dict]): Список словарей с остатками.
+        campaign_id(str):  Индефикатор кампании в Яндекс.Маркете.
+        access_token(str): Токен для авторизации.
+
+    Returns:
+        dict: Ответ API с результатами обновления.
+
+    Raises:
+        requests.exceptions.HTTPError: Ошибка API при обновлении остатков.
+
+    Examples:
+        Корректное использование:
+        
+        Некорректное использование:
+    """
     endpoint_url = "https://api.partner.market.yandex.ru/"
     headers = {
         "Content-Type": "application/json",
