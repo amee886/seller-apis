@@ -75,8 +75,11 @@ def update_stocks(stocks, campaign_id, access_token):
 
     Examples:
         Корректное использование:
-        
+            >>> update_stocks([{"sku": "123", "warehouseId": "1", "items": [{"count": 10, "type": "FIT", "updatedAt": "2025-09-15T00:00:00Z"}]}], "123456", "token")
+            {"status": "OK"}
         Некорректное использование:
+            >>> update_stocks([], "123456", "token")
+            {"status": "ERROR", "message": "Empty stock list"}
     """
     endpoint_url = "https://api.partner.market.yandex.ru/"
     headers = {
@@ -94,6 +97,30 @@ def update_stocks(stocks, campaign_id, access_token):
 
 
 def update_price(prices, campaign_id, access_token):
+    """
+    Обновляет цены на товары в Яндекс.Маркете.
+
+    Args:
+        prices(list[dict]): Список с словарей с новыми ценами.
+        campaign_id(str): Индефикатор кампании в Яндекс.Маркете.
+        access_token(str): Токен для авторизации.
+
+    Returns:
+        dict: Ответ API с результатами обновления.
+
+    Raises:
+        requests.exceptions.HTTPError: Ошибка API при обновлении цен.
+
+    Examples:
+        Корректное использование:
+             >>> update_price([{"id": "123", "price": {"value": 1000, "currencyId": "RUR"}}], "123456", "token")
+            {"status": "OK"}
+        Некорректное использование:
+            >>> update_price([{"id": "123", "price": {"value": -500, "currencyId": "RUR"}}], "123456", "token")
+            {"status": "ERROR", "message": "Invalid price"}
+
+        
+    """
     endpoint_url = "https://api.partner.market.yandex.ru/"
     headers = {
         "Content-Type": "application/json",
