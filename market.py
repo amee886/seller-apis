@@ -23,9 +23,9 @@ def get_product_list(page, campaign_id, access_token):
     Returns:
         dict: Словарь с результатами, в котором есть:
             - offerMappingEntries (list): список товаров.
-            - paging (dict): данные дл яперехода на следующую страницу.
+            - paging (dict): данные для перехода на следующую страницу.
     Raises:
-        requests.exceptions.HTTpError: Если API вернул ошибку (например, неверный токен).
+        requests.exceptions.HTTPError: Если API вернул ошибку (например, неверный токен).
         requests.exceptions.ConnectionError: Если нет соеденения с интернетом.
         requests.exceptions.Timeout: Если запрос превысил лимит времени.
 
@@ -143,7 +143,7 @@ def get_offer_ids(campaign_id, market_token):
         campaign_id(str): Индефикатор кампании в Яндекс.Маркете.
         market_token(str): OAuth-токен.
 
-    Retursns:
+    Returns:
         list[str]: Список артикулов.
     Raises:
         requests.exceptions.HTTPError: Если API вернул ошибку.
@@ -172,10 +172,10 @@ def get_offer_ids(campaign_id, market_token):
 
 def create_stocks(watch_remnants, offer_ids, warehouse_id):
     """
-    Создает список остатков для загрузки на Янлекс.Маркет.
+    Создает список остатков для загрузки на Яндекс.Маркет.
 
     Args: 
-        watch_remnants(list[str]): Данные о товарах(остатки).
+        watch_remnants(list[dict]): Данные о товарах(остатки).
         offer_ids(list[str]): Список артикулов.
         warehouse_id(str): Индефикатор склада.
     Returns:
@@ -238,7 +238,7 @@ def create_prices(watch_remnants, offer_ids):
     Сформировать список цен для загрузки на Яндекс.Маркет.
 
     Args:
-        watch_remnants(list[str]): Данные о товарах(остатки).
+        watch_remnants(list[dict]): Данные о товарах(остатки).
         offer_ids(list[str]): Список артикулов.
         
     Returns:
@@ -312,8 +312,8 @@ async def upload_stocks(watch_remnants, campaign_id, market_token, warehouse_id)
 
     Returns:
         tuple[list[dict], list[dict]]: 
-            not_empty (товары с остатками > 0), 
-            stocks (все товары).
+            -not_empty (товары с остатками > 0), 
+            -stocks (все товары).
     Examples:
         Корректное использование:
             >>> await upload_stocks([{"Код": "123", "Цена": "1000"}], "123456", "token","1")
