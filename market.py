@@ -137,7 +137,25 @@ def update_price(prices, campaign_id, access_token):
 
 
 def get_offer_ids(campaign_id, market_token):
-    """Получить артикулы товаров Яндекс маркета"""
+    """Получить артикулы товаров Яндекс маркета
+
+    Args:
+        campaign_id(str): Индефикатор кампании в Яндекс.Маркете.
+        market_token(str): OAuth-токен.
+
+    Retursns:
+        list[str]: Список артикулов.
+    Raises:
+        requests.exceptions.HTTPError: Если API вернул ошибку.
+    Examples:
+        Корректное использование:
+            >>> offer_ids = get_offer_ids("123456", "token")
+            >>> isinstance(offer_ids, list)
+            True
+        Некорректное использование:
+            >>> get_offer_ids("WRONG_ID", "token")
+            requests.exceptions.HTTPError: 404 Client Error
+    """
     page = ""
     product_list = []
     while True:
@@ -153,6 +171,24 @@ def get_offer_ids(campaign_id, market_token):
 
 
 def create_stocks(watch_remnants, offer_ids, warehouse_id):
+    """
+    Создает список остатков для загрузки на Янлекс.Маркет.
+
+    Args: 
+        watch_remnants(list[str]): Данные о товарах(остатки).
+        offer_ids(list[str]): Список артикулов.
+        warehouse_id(str): Индефикатор склада.
+    Returns:
+        list[dict]: Список остатков в формате API.
+    Examples:
+        Корректное использование:
+            >>> remnants = [{"Код": "123", "Количество": "5"}]
+            >>> create_stocks(remnants, ["123"], "1")
+            [{"sku": "123", "warehouseId": "1", "items": [{"count": 5, "type": "FIT", "updatedAt": "..."}]}]
+        Некорректное использование:
+             >>> create_stocks([{"Количество": "5"}], ["123"], "1")
+            []
+    """
     # Уберем то, что не загружено в market
     stocks = list()
     date = str(datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z")
@@ -198,6 +234,27 @@ def create_stocks(watch_remnants, offer_ids, warehouse_id):
 
 
 def create_prices(watch_remnants, offer_ids):
+    """
+    Сформировать список цен для загрузки на Яндекс.Маркет.
+
+    Args:
+        watch_remnants(list[str]): Данные о товарах(остатки).
+        offer_ids(list[str]): Список артикулов.
+        
+    Returns:
+        list[dict]: Список цен в формате API.
+        
+    Examples:
+        Корректное использование:
+            >>> remnants = [{"Код": "123", "Цена": "1'000.00 руб."}]
+            >>> create_prices(remnants, ["123"])
+            [{"id": "123", "price": {"value": 1000, "currencyId": "RUR"}}]
+
+        Некорректное использование:
+             >>> remnants = [{"Код": "123", "Цена": ""}]
+            >>> create_prices(remnants, ["123"])
+            ValueError: invalid literal for int() with base 10: ''
+    """
     prices = []
     for watch in watch_remnants:
         if str(watch.get("Код")) in offer_ids:
@@ -218,6 +275,24 @@ def create_prices(watch_remnants, offer_ids):
 
 
 async def upload_prices(watch_remnants, campaign_id, market_token):
+    """
+    Загружает цены на Яндекс.Маркет.
+
+    Args:
+        watch_remnants(list[str]): Данные о товарах(остатки).
+        campaign_id(str): Индефикатор кампании в Яндекс.Маркете.
+        market_token(str): OAuth-токен.
+
+    Returns:
+        list[dict]: Список цен.
+    Examples:
+        Корректное использование:
+            >>> await upload_prices([{"Код": "123", "Цена": "1000"}], "123456", "token")
+            [{"id": "123", "price": {"value": 1000, "currencyId": "RUR"}}]
+        Некорректное использование:
+            >>> await upload_prices([], "123456", "token")
+            []
+    """
     offer_ids = get_offer_ids(campaign_id, market_token)
     prices = create_prices(watch_remnants, offer_ids)
     for some_prices in list(divide(prices, 500)):
@@ -226,6 +301,27 @@ async def upload_prices(watch_remnants, campaign_id, market_token):
 
 
 async def upload_stocks(watch_remnants, campaign_id, market_token, warehouse_id):
+    """
+    Загружает остатки на Яндекс.Маркет.
+
+    Args:
+        watch_remnants(list[str]): Данные о товарах(остатки).
+        campaign_id(str): Индефикатор кампании в Яндекс.Маркете.
+        market_token(str): OAuth-токен.
+        warehouse_id(str): Индефикатор склада.
+
+    Returns:
+        tuple[list[dict], list[dict]]: 
+            not_empty (товары с остатками > 0), 
+            stocks (все товары).
+    Examples:
+        Корректное использование:
+            >>> await upload_stocks([{"Код": "123", "Цена": "1000"}], "123456", "token","1")
+            ([{"sku": "123", ...}], [{"sku": "123", ...}])
+        Некорректное использование:
+            >>>await upload_stocks([{"Код": "123", "Цена": "1000"}], "123456", "token","1")
+            ([],[])
+    """    
     offer_ids = get_offer_ids(campaign_id, market_token)
     stocks = create_stocks(watch_remnants, offer_ids, warehouse_id)
     for some_stock in list(divide(stocks, 2000)):
@@ -237,6 +333,22 @@ async def upload_stocks(watch_remnants, campaign_id, market_token, warehouse_id)
 
 
 def main():
+    """
+    Основная функция: Загружает остатки товаров с сайта Casio и обновляет данные в Яндекс.Маркете.
+
+    Raises:
+        requests.exceptions.ReadTimeout: Если превышено время ожидания ответа.
+        requests.exceptions.ConnectionError: Если нет соединения с API.
+        Exception: Любая другая ошибка.
+
+    Examples:
+        Корректно:
+        >>> main()  # запускает процесс обновления остатков и цен
+
+        Некорректно (не задан токен окружения):
+        >>> main()
+        KeyError: 'MARKET_TOKEN'
+    """
     env = Env()
     market_token = env.str("MARKET_TOKEN")
     campaign_fbs_id = env.str("FBS_ID")
