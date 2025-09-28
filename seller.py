@@ -98,7 +98,9 @@ def update_price(prices: list[dict], client_id: str, seller_token: str) -> dict:
         dict: Ответ Ozon API.
 
     Raises:
-        requests.exceptions.RequestException: Если запрос к API не удался.
+        requests.exceptions.HTTPError: Если API вернул ошибку.
+        requests.exceptions.ConnectionError: Если нет соединения.
+        requests.exceptions.Timeout: Если превышено время ожидания.
 
     Examples:
         Корректно:
@@ -133,7 +135,9 @@ def update_stocks(stocks: list[dict], client_id: str, seller_token: str) -> dict
         dict: Ответ Ozon API.
 
     Raises:
-        requests.exceptions.RequestException: Если запрос к API не удался.
+        requests.exceptions.HTTPError: Если API вернул ошибку.
+        requests.exceptions.ConnectionError: Если нет соединения.
+        requests.exceptions.Timeout: Если превышено время ожидания.
 
     Examples:
         Корректно:
